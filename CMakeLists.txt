@@ -7,7 +7,7 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set(SDL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SDL")
 
-add_executable(${PROJECT_NAME} main.cpp chip8.h chip8.cpp)
+add_executable(${PROJECT_NAME} main.cpp chip8.h chip8.cpp sdl_helpers.hpp)
 
 if(NOT TARGET SDL2)
     add_subdirectory("${SDL_DIR}" ${PROJECT_BINARY_DIR}/SDL2)

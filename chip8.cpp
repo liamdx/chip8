@@ -15,3 +15,11 @@ void chip8::Decode()
 void chip8::Execute()
 {
 }
+
+void chip8::UpdateInput(unsigned short newState)
+{
+}
+
+void chip8::FillFont()
+{
+}
