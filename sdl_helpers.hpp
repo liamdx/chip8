@@ -6,6 +6,7 @@ SDL_Window* m_Window;
 
 bool m_ShouldRun = true;
 
+
 void HandleSDLEvent(SDL_Event& event)
 {
     switch (event.type)
@@ -16,10 +17,10 @@ void HandleSDLEvent(SDL_Event& event)
     }
 }
 
-void CreateSDLWindow()
+void CreateSDLWindow(unsigned int width, unsigned int height)
 {
     SDL_FLAGS |= SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
-    m_Window = SDL_CreateWindow("Chip8 Emu", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 600, SDL_FLAGS);
+    m_Window = SDL_CreateWindow("Chip8 Emu", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_FLAGS);
 }
 
 void RunLoop(std::function<void()> callback)
