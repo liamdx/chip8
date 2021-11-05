@@ -1,4 +1,16 @@
 cmake_minimum_required(VERSION 3.14)
 project(chip8)
 
-add_executable(${PROJECT_NAME} main.cpp)
+# windows specific stuff
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+set(SDL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SDL")
+
+add_executable(${PROJECT_NAME} main.cpp chip8.h chip8.cpp)
+
+if(NOT TARGET SDL2)
+    add_subdirectory("${SDL_DIR}" ${PROJECT_BINARY_DIR}/SDL2)
+    target_link_libraries(${PROJECT_NAME} SDL2)
+    target_include_directories(${PROJECT_NAME} PUBLIC "${SDL_DIR}/include")
+endif()
