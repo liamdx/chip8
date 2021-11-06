@@ -1,5 +1,6 @@
 #include "chip8.h"
-
+#include <vector>
+#include <iostream>
 chip8::chip8() 
 {
 	Initialize();
@@ -161,4 +162,32 @@ void chip8::op_drw_vx_vy_n(unsigned short instruction)
 	unsigned short num_bytes = instruction & 0xF;
 	unsigned short vx = instruction & 0xF00;
 	unsigned short vy = instruction & 0xF0;
+
+	std::vector<unsigned char> sprite;
+
+	for (unsigned short i = 0; i < num_bytes; i++)
+	{
+		unsigned short current_location = I + (i * 8);
+		sprite.emplace_back(Memory[current_location]);
+	}
+
+	char x_coord = V[vx];
+	char y_coord = V[vy];
+
+}
+
+unsigned short chip8::get_display_index(char x, char y)
+{
+	if (x >= SCREEN_WIDTH)
+	{
+		std::cerr << "X bigger than screen width" << std::endl;
+	}
+
+	if (y >= SCREEN_HEIGHT)
+	{
+		std::cerr << "Y bigger than screen height" << std::endl;
+	}
+
+
+	return 0;
 }

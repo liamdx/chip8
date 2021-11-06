@@ -26,7 +26,7 @@ protected:
 
     union
     {
-        unsigned char Memory[MEMORY_CAPACITY];
+        unsigned char Memory[MEMORY_CAPACITY] {0};
         struct
         {
             unsigned char V[16], Display[(SCREEN_HEIGHT * SCREEN_WIDTH) / 8], Font[16 * 5], DelayTimer, SoundTimer, StackPointer;
@@ -42,6 +42,10 @@ private:
     void op_ld_i(unsigned short instruction);
     void op_add(unsigned short instruction);
     void op_drw_vx_vy_n(unsigned short instruction);
+
+    // need to think abouty this a bit more, how do we properly xor when we need to manipulate individual bits?
+    // might make sense to move over to binary array for sake of ease
+    unsigned short get_display_index(char x, char y);
 
 
 };
