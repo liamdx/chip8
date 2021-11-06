@@ -13,6 +13,7 @@ void chip8::Update(unsigned short newState)
 
 void chip8::Initialize()
 {
+	PC = PROGRAM_START;
 	FillFont();
 }
 
@@ -114,4 +115,50 @@ void chip8::FillFont()
 	Font[77] = 0xF0;
 	Font[78] = 0x80;
 	Font[79] = 0x80;	
+}
+
+void chip8::op_jp_addr(unsigned short addr)
+{
+	unsigned short nnn = addr & 0xFFF;
+	PC = nnn;
+}
+
+void chip8::op_cls()
+{
+	int limit = (SCREEN_HEIGHT * SCREEN_WIDTH) / 8;
+	for (int i = 0; i < limit; i++)
+	{
+		Display[i] = 0x00;
+	}
+}
+
+void chip8::op_ld_vx(unsigned short instruction)
+{
+	unsigned char lower_byte = (instruction & 0xFF);
+	unsigned char upper_byte = (instruction >> 8);
+	auto x = (upper_byte & 15);
+
+	V[x] = lower_byte;
+}
+
+void chip8::op_ld_i(unsigned short instruction)
+{
+	unsigned short nnn = instruction & 0xFFF;
+	I = nnn;
+}
+
+void chip8::op_add(unsigned short instruction)
+{
+	unsigned char lower_byte = (instruction & 0xFF);
+	unsigned char upper_byte = (instruction >> 8);
+	auto x = (upper_byte & 15);
+
+	V[x] += lower_byte;
+}
+
+void chip8::op_drw_vx_vy_n(unsigned short instruction)
+{
+	unsigned short num_bytes = instruction & 0xF;
+	unsigned short vx = instruction & 0xF00;
+	unsigned short vy = instruction & 0xF0;
 }
