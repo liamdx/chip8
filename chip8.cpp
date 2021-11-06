@@ -6,9 +6,17 @@ chip8::chip8()
 	Initialize();
 }
 
-void chip8::Update(unsigned short newState)
+void chip8::Update(uint16_t newState)
 {
 	Keyboard = newState;
+	uint16_t opcode = 1;
+
+	switch(opcode)
+	{
+		// do the op
+	}
+
+	PC += 0xF0;
 }
 
 
@@ -118,9 +126,9 @@ void chip8::FillFont()
 	Font[79] = 0x80;	
 }
 
-void chip8::op_jp_addr(unsigned short addr)
+void chip8::op_jp_addr(uint16_t addr)
 {
-	unsigned short nnn = addr & 0xFFF;
+	uint16_t nnn = addr & 0xFFF;
 	PC = nnn;
 }
 
@@ -133,51 +141,73 @@ void chip8::op_cls()
 	}
 }
 
-void chip8::op_ld_vx(unsigned short instruction)
+void chip8::op_ld_vx(uint16_t instruction)
 {
-	unsigned char lower_byte = (instruction & 0xFF);
-	unsigned char upper_byte = (instruction >> 8);
+	uint8_t lower_byte = (instruction & 0xFF);
+	uint8_t upper_byte = (instruction >> 8);
 	auto x = (upper_byte & 15);
 
 	V[x] = lower_byte;
 }
 
-void chip8::op_ld_i(unsigned short instruction)
+void chip8::op_ld_i(uint16_t instruction)
 {
-	unsigned short nnn = instruction & 0xFFF;
+	uint16_t nnn = instruction & 0xFFF;
 	I = nnn;
 }
 
-void chip8::op_add(unsigned short instruction)
+void chip8::op_add(uint16_t instruction)
 {
-	unsigned char lower_byte = (instruction & 0xFF);
-	unsigned char upper_byte = (instruction >> 8);
+	uint8_t lower_byte = (instruction & 0xFF);
+	uint8_t upper_byte = (instruction >> 8);
 	auto x = (upper_byte & 15);
 
 	V[x] += lower_byte;
 }
 
-void chip8::op_drw_vx_vy_n(unsigned short instruction)
+void chip8::op_drw_vx_vy_n(uint16_t instruction)
 {
-	unsigned short num_bytes = instruction & 0xF;
-	unsigned short vx = instruction & 0xF00;
-	unsigned short vy = instruction & 0xF0;
+	// Draw a sprite at position VX, VY with N bytes of sprite data starting at the address stored in I
+	// Set VF to 01 if any set pixels are changed to unset, and 00 otherwise
+	// 
+	// A sprite is a group of bytes which are a binary representation of the desired picture.Chip -
+	//	8 sprites may be up to 15 bytes, for a possible sprite size of 8x15.
 
-	std::vector<unsigned char> sprite;
-
-	for (unsigned short i = 0; i < num_bytes; i++)
-	{
-		unsigned short current_location = I + (i * 8);
-		sprite.emplace_back(Memory[current_location]);
-	}
-
+	uint16_t num_bytes = instruction & 0xF;
+	// get the starting pixel location from the Vx registers
+	uint16_t vx = instruction & 0xF00;
+	uint16_t vy = instruction & 0xF0;
 	char x_coord = V[vx];
 	char y_coord = V[vy];
 
+	// temporary vector to store the sprite data
+	std::vector<uint8_t> sprite;
+
+	for (uint16_t i = 0; i < num_bytes; i++)
+	{
+		// ..sprite data starting at the address stored in I
+		uint16_t current_location = I + i;
+		sprite.emplace_back(Memory[current_location]);
+	}
+
+	for (int row = 0; row < sprite.size(); row++)
+	{
+
+	}
+
 }
 
-unsigned short chip8::get_display_index(char x, char y)
+uint16_t chip8::get_display_index(char x, char y)
 {
+
+	// (0, 0) = 0	(63, 0) = 63
+
+	// total num bools = screenw * screenh = 64 * 32 = 2048	
+	// last index 2047
+	// (0, 31) = 2047 - 64	= ((x + 1) * (y + 1)) - 1;
+	// screen_width * y = 64 * 31 = 1984 + 31 = 2015
+	// (63, 31)
+
 	if (x >= SCREEN_WIDTH)
 	{
 		std::cerr << "X bigger than screen width" << std::endl;
@@ -189,5 +219,5 @@ unsigned short chip8::get_display_index(char x, char y)
 	}
 
 
-	return 0;
+	return ((x + 1) * (y + 1)) - 1;
 }
