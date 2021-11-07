@@ -1,22 +1,38 @@
 #include "chip8.h"
 #include <vector>
 #include <iostream>
+#include <iterator>
+#include <algorithm>
+
 chip8::chip8() 
 {
 	Initialize();
 }
 
-void chip8::Update(uint16_t newState)
+uint16_t chip8::FetchOpcode()
 {
-	Keyboard = newState;
-	uint16_t opcode = 1;
+	return uint16_t();
+}
 
-	switch(opcode)
+void chip8::HandleOpcode(uint16_t opcode)
+{
+	switch (opcode)
 	{
 		// do the op
 	}
+}
 
-	PC += 0xF0;
+void chip8::LoadRom(std::ifstream rom)
+{
+}
+
+void chip8::Update(uint16_t newState)
+{
+	Keyboard = newState;
+	uint16_t opcode = FetchOpcode();
+	// increment program counter
+	PC += 2;
+	HandleOpcode(opcode);
 }
 
 
@@ -179,6 +195,7 @@ void chip8::op_drw_vx_vy_n(uint16_t instruction)
 	uint16_t vy = instruction & 0xF0;
 	char x_coord = V[vx];
 	char y_coord = V[vy];
+	V[0xF] = 0x00;
 
 	// temporary vector to store the sprite data
 	std::vector<uint8_t> sprite;
@@ -190,11 +207,27 @@ void chip8::op_drw_vx_vy_n(uint16_t instruction)
 		sprite.emplace_back(Memory[current_location]);
 	}
 
+	// If you want the k - th bit of n, then do
+	// (n & (1 << k)) >> k
+
 	for (int row = 0; row < sprite.size(); row++)
 	{
+		uint8_t spr = sprite[row];
+		for (int bit = 0; bit < 8; bit++)
+		{
+			int invbit = 7 - bit;
+			bool currentPixelValue = (bool)(spr & (1 << invbit)) >> invbit; // get the current bit from the sprite byte
+			uint16_t index = get_display_index(x_coord + bit, y_coord + row);
+			bool lastDisplay = Display[index];
+			Display[index] = Display[index] ^ currentPixelValue;
 
+			if (lastDisplay == true && Display[index] == false)
+			{
+				V[0xF] = 0x01;
+			}
+		}
 	}
-
+	
 }
 
 uint16_t chip8::get_display_index(char x, char y)

@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <fstream>
 
 constexpr int SCREEN_WIDTH = 64;
 constexpr int SCREEN_HEIGHT = 32;
@@ -18,6 +19,9 @@ public:
 
 protected:
     
+    uint16_t FetchOpcode();
+    void HandleOpcode(uint16_t opcode);
+    void LoadRom(std::ifstream rom);
     // called 60 times per second
     void Update(uint16_t newState);
 
