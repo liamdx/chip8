@@ -8,13 +8,15 @@
 int main()
 {
     std::cout << "Hello Chip8" << std::endl;
-
+    InitSDL(SCREEN_WIDTH , SCREEN_HEIGHT);
     chip8 emu;
 
-    CreateSDLWindow(SCREEN_WIDTH * 16, SCREEN_HEIGHT * 16);
+    auto bools = CreateTestBoolArray(SCREEN_WIDTH, SCREEN_HEIGHT);
+    
     RunLoop([&]()
     {
-        std::cout << "Hello again!" << std::endl;
+        // DrawBoolArray(bools, SCREEN_WIDTH, SCREEN_HEIGHT);
+        DrawBoolArrayScaled(bools, SCREEN_WIDTH, SCREEN_HEIGHT);
     });
 
     return 1;

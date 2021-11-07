@@ -11,19 +11,54 @@ chip8::chip8()
 
 uint16_t chip8::FetchOpcode()
 {
-	return uint16_t();
+	// fetch next 2 bytes and combine in to a 16 bit instruction
+	uint8_t byte1 = Memory[PC];
+	uint8_t byte2 = Memory[PC + 1];
+
+	// combine
+	uint16_t op = 0;
+	// assign first byte
+	op = byte1;
+	// bit shift 8 places to the left
+	op <<= 8;
+	// assign byte2 to the last 8 bits
+	op |= byte2;
+
+	return op;
 }
 
 void chip8::HandleOpcode(uint16_t opcode)
 {
-	switch (opcode)
-	{
-		// do the op
-	}
+	// mask the first nibble to get a rough idea
+	// switch on the first nibble
 }
 
 void chip8::LoadRom(std::ifstream rom)
 {
+	std::vector<char> buffer(std::istreambuf_iterator<char>(rom), {});
+	std::vector<uint8_t> converted_rom;
+
+	// this might be sus
+	for (int i = 0; i < buffer.size(); i++)
+	{
+		converted_rom.emplace_back((uint32_t)buffer[i]);
+	}
+
+	// allows this function to be identical if we change to a super-chip8 impl
+	uint16_t available_ram = MEMORY_END - MEMORY_START;
+
+	// check the rom will fit in memory
+	if (available_ram < converted_rom.size())
+	{
+		std::cerr << "Desired Rom is too big for the chip8 available memory" << std::endl;
+		return;
+	}
+	
+	// fill the memory with the rom
+	for (uint16_t i = 0; i < converted_rom.size(); i++)
+	{
+		Memory[PROGRAM_START + i] = converted_rom[i];
+	}
 }
 
 void chip8::Update(uint16_t newState)
