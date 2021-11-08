@@ -1,12 +1,55 @@
 #include "chip8.h"
-#include <vector>
 #include <iostream>
 #include <iterator>
 #include <algorithm>
+#include <fstream>
 
 chip8::chip8() 
 {
+	
 	Initialize();
+}
+
+std::vector<bool> chip8::GetPixels()
+{
+	std::vector<bool> pixels;
+
+	for (int i = 0; i < (SCREEN_WIDTH * SCREEN_HEIGHT) / 8; i++)
+	{
+		uint8_t current_row = Display[i];
+		// might need to be the other way around e.g. 8-7-6-5...
+		for (int i = 0; i < 8; i++)
+		{
+			// If you want the k - th bit of n, then do
+			// (n & (1 << k)) >> k
+			uint8_t current_pixel_val_byte = (current_row & (1 << i)) >> i;
+			bool current_pixel_val = (current_row & (1 << i)) >> i;
+			pixels.emplace_back(current_pixel_val);
+		}
+
+		pixels.emplace_back(Display[i]);
+	}
+
+	return pixels;
+}
+
+void chip8::LoadRom(std::vector<uint8_t> rom)
+{
+	// allows this function to be identical if we change to a super-chip8 impl
+	uint16_t available_ram = MEMORY_END - MEMORY_START;
+
+	// check the rom will fit in memory
+	if (available_ram < rom.size())
+	{
+		std::cerr << "Desired Rom is too big for the chip8 available memory" << std::endl;
+		return;
+	}
+
+	// fill the memory with the rom
+	for (uint16_t i = 0; i < rom.size(); i++)
+	{
+		Rom[i] = rom[i];
+	}
 }
 
 uint16_t chip8::FetchOpcode()
@@ -31,11 +74,54 @@ void chip8::HandleOpcode(uint16_t opcode)
 {
 	// mask the first nibble to get a rough idea
 	// switch on the first nibble
+
+	
+	uint8_t first_byte = (opcode >> 8);
+	uint8_t second_byte = (opcode & 0xFF);
+
+	uint8_t n1 = first_byte & 0xF0;
+	uint8_t n2 = first_byte & 0x0F;
+	n2 = n2 >> 4;
+	uint8_t n3 = second_byte & 0xF0;
+	uint8_t n4 = second_byte & 0x0F;
+	n4 = n4 >> 4;
+
+
+	switch (first_byte)
+	{
+		case 0x00:
+			if (second_byte == 0xE0)
+			{
+				op_cls();
+			}
+			else
+			{
+
+			}
+			break;
+	
+	}
 }
 
-void chip8::LoadRom(std::ifstream rom)
+void chip8::Update(uint16_t newState)
 {
-	std::vector<char> buffer(std::istreambuf_iterator<char>(rom), {});
+	Keyboard = newState;
+
+	// disgusting hack, at 60hz this is approximately 700 ips
+	for (int i = 0; i < 12; i++)
+	{
+		uint16_t opcode = FetchOpcode();
+		// increment program counter
+		PC += 2;
+		HandleOpcode(opcode);
+	}
+}
+
+std::vector<uint8_t> chip8::LoadRomStream(std::string path)
+{
+	std::ifstream rom_stream = std::ifstream(path, std::ios::binary);
+
+	std::vector<char> buffer(std::istreambuf_iterator<char>(rom_stream), {});
 	std::vector<uint8_t> converted_rom;
 
 	// this might be sus
@@ -44,37 +130,46 @@ void chip8::LoadRom(std::ifstream rom)
 		converted_rom.emplace_back((uint32_t)buffer[i]);
 	}
 
-	// allows this function to be identical if we change to a super-chip8 impl
-	uint16_t available_ram = MEMORY_END - MEMORY_START;
+	return converted_rom;
 
-	// check the rom will fit in memory
-	if (available_ram < converted_rom.size())
-	{
-		std::cerr << "Desired Rom is too big for the chip8 available memory" << std::endl;
-		return;
-	}
-	
-	// fill the memory with the rom
-	for (uint16_t i = 0; i < converted_rom.size(); i++)
-	{
-		Memory[PROGRAM_START + i] = converted_rom[i];
-	}
-}
-
-void chip8::Update(uint16_t newState)
-{
-	Keyboard = newState;
-	uint16_t opcode = FetchOpcode();
-	// increment program counter
-	PC += 2;
-	HandleOpcode(opcode);
 }
 
 
 void chip8::Initialize()
 {
-	PC = PROGRAM_START;
+	for (auto i = 0; i < MEMORY_CAPACITY; i++)
+	{
+		Memory[i] = 0x00;
+	}
+	for (auto i = 0; i < 16; i++)
+	{
+		V[i] = 0x00;
+	}
 	FillFont();
+	DelayTimer = 0x00;
+	SoundTimer = 0x00;
+	StackPointer = 0x00;
+
+	for (auto i = 0; i < (SCREEN_HEIGHT * SCREEN_WIDTH) / 8; i++)
+	{
+		Display[i] = 0X00;
+	}
+
+	for (auto i = 0; i < 16; i++)
+	{
+		Stack[i] = 0x0000;
+	}
+	I = 0x0000;
+	PC = PROGRAM_START;
+	Keyboard = 0x0000;
+	for (auto i = 0; i < SYSTEM_MEMORY_PADDING; i++)
+	{
+		_padding[i] = 0xFF;
+	}
+	for (auto i = 0; i < ROM_SIZE; i++)
+	{
+		Rom[i] = 0x00;
+	}
 }
 
 void chip8::FillFont()
@@ -185,7 +280,7 @@ void chip8::op_jp_addr(uint16_t addr)
 
 void chip8::op_cls()
 {
-	int limit = (SCREEN_HEIGHT * SCREEN_WIDTH) / 8;
+	int limit = (SCREEN_HEIGHT * SCREEN_WIDTH / 8);
 	for (int i = 0; i < limit; i++)
 	{
 		Display[i] = 0x00;
