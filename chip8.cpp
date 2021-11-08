@@ -80,26 +80,36 @@ void chip8::HandleOpcode(uint16_t opcode)
 	uint8_t second_byte = (opcode & 0xFF);
 
 	uint8_t n1 = first_byte & 0xF0;
+	n1 = n1 >> 4;
 	uint8_t n2 = first_byte & 0x0F;
-	n2 = n2 >> 4;
 	uint8_t n3 = second_byte & 0xF0;
+	n3 = n3 >> 4;
 	uint8_t n4 = second_byte & 0x0F;
-	n4 = n4 >> 4;
 
 
-	switch (first_byte)
+	switch (n1)
 	{
-		case 0x00:
-			if (second_byte == 0xE0)
-			{
-				op_cls();
-			}
-			else
-			{
-
-			}
+		case 0x1:
+			op_jp_addr(opcode);
 			break;
-	
+		case 0x0:
+			op_cls();
+			break;
+		case 0x6:
+			op_ld_vx(opcode);
+			break;
+		case 0xA:
+			op_ld_i(opcode);
+			break;
+		case 0x7:
+			op_add(opcode);
+			break;
+		case 0xD:
+			op_drw_vx_vy_n(opcode);
+			break;
+		default: 
+			op_unimplemented();
+			break;
 	}
 }
 
@@ -340,24 +350,49 @@ void chip8::op_drw_vx_vy_n(uint16_t instruction)
 	// If you want the k - th bit of n, then do
 	// (n & (1 << k)) >> k
 
-	for (int row = 0; row < sprite.size(); row++)
-	{
-		uint8_t spr = sprite[row];
-		for (int bit = 0; bit < 8; bit++)
-		{
-			int invbit = 7 - bit;
-			bool currentPixelValue = (bool)(spr & (1 << invbit)) >> invbit; // get the current bit from the sprite byte
-			uint16_t index = get_display_index(x_coord + bit, y_coord + row);
-			bool lastDisplay = Display[index];
-			Display[index] = Display[index] ^ currentPixelValue;
+	// find the index of the byte containing the current coordinate
+	// 8 pixels per byte
+	// 64 / 8 = 8 possible bytes a pixel can be in
+	// e.g. (21, 0)
+	// byte of x coordinate = (x / 8) + (8 * y) = 2;
+	// bit of x coordinate = x % 8 = 5;
+	// 
+	// e.g. (21, 1)
+	// byte of x coordinate = (x * (y+1) / 8 = 5;
+	// bit of x coordinate = x % 8 = 5;
+	// 
+	// 
+	// get the index of the bit in said byte indicating the pixel
 
-			if (lastDisplay == true && Display[index] == false)
+	uint16_t start_byte_index = (x_coord / 8) + (8 * y_coord);
+	uint8_t start_bit_index = x_coord % 8;
+
+	for (uint8_t row = 0; row < sprite.size(); row++)
+	{
+		start_byte_index += 8 * row;
+		for (uint8_t bit = 0; bit < 8; bit++)
+		{
+			uint16_t final_byte_index = start_byte_index;
+			uint8_t final_bit_index = start_bit_index + bit;
+			// if the current pixel is outwith the current display byte
+			if (final_bit_index + (bit + 1) > 7)
 			{
-				V[0xF] = 0x01;
+				final_bit_index -= 8;
+				final_byte_index += 1;
 			}
+
+			Display[final_byte_index] |= 1 << final_bit_index;
+			
 		}
 	}
 	
+
+	
+}
+
+void chip8::op_unimplemented()
+{
+	std::cout << "opcode unimplemented" << std::endl;
 }
 
 uint16_t chip8::get_display_index(char x, char y)

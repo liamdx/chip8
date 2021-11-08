@@ -1,12 +1,11 @@
 #include <cstdint>
-#include <fstream>
 #include <vector>
 #include <string>
 
 constexpr int SCREEN_WIDTH = 64;
 constexpr int SCREEN_HEIGHT = 32;
 constexpr int MEMORY_CAPACITY = 4096;
-constexpr int SYSTEM_MEMORY_PADDING = 119;
+constexpr int SYSTEM_MEMORY_PADDING = 118;
 constexpr int ROM_SIZE = 3584;
 
 constexpr uint16_t PC_INCREMENT = 16;
@@ -61,6 +60,8 @@ private:
     void op_add(uint16_t instruction);
     // DXYN
     void op_drw_vx_vy_n(uint16_t instruction);
+
+    void op_unimplemented();
 
     // need to think abouty this a bit more, how do we properly xor when we need to manipulate individual bits?
     // might make sense to move over to binary array for sake of ease
