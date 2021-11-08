@@ -24,10 +24,6 @@ std::vector<bool> chip8::GetPixels()
 			// (n & (1 << k)) >> k
 			uint8_t current_pixel_val_byte = (current_row & (1 << bit)) >> bit;
 			bool current_pixel_val = (current_row & (1 << bit)) >> bit;
-			if (current_pixel_val)
-			{
-				std::cout << "a pixel" << std::endl;
-			}
 			pixels.emplace_back(current_pixel_val);
 		}
 
@@ -127,6 +123,10 @@ void chip8::Update(uint16_t newState)
 		uint16_t opcode = FetchOpcode();
 		// increment program counter
 		PC += 2;
+		if (PC > 4095)
+		{
+			PC = PROGRAM_START;
+		}
 		HandleOpcode(opcode);
 	}
 }
@@ -286,6 +286,7 @@ void chip8::FillFont()
 	Font[79] = 0x80;	
 }
 
+// I SUSPECT YOU ARE THE PROBLEM
 void chip8::op_jp_addr(uint16_t addr)
 {
 	uint16_t nnn = addr & 0xFFF;
