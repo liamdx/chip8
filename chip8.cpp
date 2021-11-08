@@ -18,12 +18,16 @@ std::vector<bool> chip8::GetPixels()
 	{
 		uint8_t current_row = Display[i];
 		// might need to be the other way around e.g. 8-7-6-5...
-		for (int i = 0; i < 8; i++)
+		for (int bit = 0; bit < 8; bit++)
 		{
 			// If you want the k - th bit of n, then do
 			// (n & (1 << k)) >> k
-			uint8_t current_pixel_val_byte = (current_row & (1 << i)) >> i;
-			bool current_pixel_val = (current_row & (1 << i)) >> i;
+			uint8_t current_pixel_val_byte = (current_row & (1 << bit)) >> bit;
+			bool current_pixel_val = (current_row & (1 << bit)) >> bit;
+			if (current_pixel_val)
+			{
+				std::cout << "a pixel" << std::endl;
+			}
 			pixels.emplace_back(current_pixel_val);
 		}
 
@@ -329,10 +333,16 @@ void chip8::op_drw_vx_vy_n(uint16_t instruction)
 	// A sprite is a group of bytes which are a binary representation of the desired picture.Chip -
 	//	8 sprites may be up to 15 bytes, for a possible sprite size of 8x15.
 
-	uint16_t num_bytes = instruction & 0xF;
-	// get the starting pixel location from the Vx registers
-	uint16_t vx = instruction & 0xF00;
-	uint16_t vy = instruction & 0xF0;
+	V[0xF] = 0x00;
+
+	uint8_t first_byte = (instruction >> 8);
+	uint8_t second_byte = (instruction & 0xFF);
+
+	uint8_t vx = first_byte & 0x0F;
+	uint8_t vy = second_byte & 0xF0;
+	vy = vy >> 4;
+	uint8_t num_bytes = second_byte & 0x0F;
+
 	char x_coord = V[vx];
 	char y_coord = V[vy];
 	V[0xF] = 0x00;
@@ -364,7 +374,9 @@ void chip8::op_drw_vx_vy_n(uint16_t instruction)
 	// 
 	// get the index of the bit in said byte indicating the pixel
 
-	uint16_t start_byte_index = (x_coord / 8) + (8 * y_coord);
+	uint16_t a = x_coord / 8;
+	uint16_t b = y_coord * 8;
+	uint16_t start_byte_index = a + b;
 	uint8_t start_bit_index = x_coord % 8;
 
 	for (uint8_t row = 0; row < sprite.size(); row++)
@@ -380,8 +392,14 @@ void chip8::op_drw_vx_vy_n(uint16_t instruction)
 				final_bit_index -= 8;
 				final_byte_index += 1;
 			}
+			bool pixel_currently_active = (Display[final_byte_index] & (1 << final_bit_index)) >> final_bit_index;
+			bool new_pixel_value = (sprite[row] & (1 << bit)) >> bit;
+			Display[final_byte_index] |= new_pixel_value << final_bit_index;
 
-			Display[final_byte_index] |= 1 << final_bit_index;
+			if (pixel_currently_active && !new_pixel_value)
+			{
+				V[0xF] = 0x01;
+			}
 			
 		}
 	}
