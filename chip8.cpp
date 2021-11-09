@@ -383,7 +383,7 @@ void chip8::op_drw_vx_vy_n(uint16_t instruction)
 	// 
 	// get the index of the bit in said byte indicating the pixel
 
-	uint16_t start_byte_index = (x_coord / 8) + (y_coord * 8);
+	uint16_t start_byte_index = (((x_coord / 8) + (y_coord * 8) - 1));
 	uint8_t start_bit_index = 7 - (x_coord % 8);
 
 	for (uint8_t row = 0; row < sprite.size(); row++)
