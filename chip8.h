@@ -37,8 +37,7 @@ protected:
 
     union
     {
-    public:
-        uint8_t Memory[MEMORY_CAPACITY];
+        char Memory[MEMORY_CAPACITY];
         struct
         {
             uint8_t V[16], Font[16 * 5], DelayTimer, SoundTimer, StackPointer, Display[(SCREEN_WIDTH * SCREEN_HEIGHT) / 8];
@@ -48,6 +47,8 @@ protected:
     };
 
 private:
+    // 0NNN
+    void op_sys_addr(uint16_t addr);
     // 1NNN
     void op_jp_addr(uint16_t addr);
     // 00E0

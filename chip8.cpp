@@ -5,8 +5,7 @@
 #include <fstream>
 
 chip8::chip8() 
-{
-	
+{	
 	Initialize();
 }
 
@@ -17,13 +16,11 @@ std::vector<bool> chip8::GetPixels()
 	for (int i = 0; i < (SCREEN_WIDTH * SCREEN_HEIGHT) / 8; i++)
 	{
 		uint8_t current_row = Display[i];
-		// might need to be the other way around e.g. 8-7-6-5...
-		for (int bit = 0; bit < 8; bit++)
+		for (uint8_t bit = 8; bit > 0; bit--)
 		{
 			// If you want the k - th bit of n, then do
 			// (n & (1 << k)) >> k
-			uint8_t current_pixel_val_byte = (current_row & (1 << bit)) >> bit;
-			bool current_pixel_val = (current_row & (1 << bit)) >> bit;
+			bool current_pixel_val = (current_row & (1 << (bit- 1))) >> (bit - 1);
 			pixels.emplace_back(current_pixel_val);
 		}
 
@@ -86,14 +83,21 @@ void chip8::HandleOpcode(uint16_t opcode)
 	n3 = n3 >> 4;
 	uint8_t n4 = second_byte & 0x0F;
 
-
-	switch (n1)
+ 	switch (n1)
 	{
 		case 0x1:
 			op_jp_addr(opcode);
 			break;
 		case 0x0:
-			op_cls();
+			if (opcode == 0x00E0)
+			{
+				op_cls();
+			}
+			else
+			{
+				op_sys_addr(opcode);
+			}
+			
 			break;
 		case 0x6:
 			op_ld_vx(opcode);
@@ -121,13 +125,15 @@ void chip8::Update(uint16_t newState)
 	for (int i = 0; i < 12; i++)
 	{
 		uint16_t opcode = FetchOpcode();
-		// increment program counter
 		PC += 2;
 		if (PC > 4095)
 		{
 			PC = PROGRAM_START;
 		}
+		// increment program counter
+		
 		HandleOpcode(opcode);
+		
 	}
 }
 
@@ -286,6 +292,12 @@ void chip8::FillFont()
 	Font[79] = 0x80;	
 }
 
+void chip8::op_sys_addr(uint16_t addr)
+{
+	uint16_t nnn = addr & 0xFFF;
+	PC = nnn;
+}
+
 // I SUSPECT YOU ARE THE PROBLEM
 void chip8::op_jp_addr(uint16_t addr)
 {
@@ -334,8 +346,6 @@ void chip8::op_drw_vx_vy_n(uint16_t instruction)
 	// A sprite is a group of bytes which are a binary representation of the desired picture.Chip -
 	//	8 sprites may be up to 15 bytes, for a possible sprite size of 8x15.
 
-	V[0xF] = 0x00;
-
 	uint8_t first_byte = (instruction >> 8);
 	uint8_t second_byte = (instruction & 0xFF);
 
@@ -375,27 +385,29 @@ void chip8::op_drw_vx_vy_n(uint16_t instruction)
 	// 
 	// get the index of the bit in said byte indicating the pixel
 
-	uint16_t a = x_coord / 8;
-	uint16_t b = y_coord * 8;
-	uint16_t start_byte_index = a + b;
-	uint8_t start_bit_index = x_coord % 8;
+	uint16_t start_byte_index = (x_coord / 8) + (y_coord * 8);
+	uint8_t start_bit_index = (x_coord % 8);
 
 	for (uint8_t row = 0; row < sprite.size(); row++)
-	{
-		start_byte_index += 8 * row;
-		for (uint8_t bit = 0; bit < 8; bit++)
+	{	
+		for (uint8_t bit = 8; bit > 0; bit--)
 		{
 			uint16_t final_byte_index = start_byte_index;
 			uint8_t final_bit_index = start_bit_index + bit;
 			// if the current pixel is outwith the current display byte
-			if (final_bit_index + (bit + 1) > 7)
+			if (final_bit_index < 0)
 			{
-				final_bit_index -= 8;
+				final_bit_index += 8;
 				final_byte_index += 1;
 			}
+
+			// If you want the k - th bit of n, then do
+			// (n & (1 << k)) >> k
 			bool pixel_currently_active = (Display[final_byte_index] & (1 << final_bit_index)) >> final_bit_index;
-			bool new_pixel_value = (sprite[row] & (1 << bit)) >> bit;
-			Display[final_byte_index] |= new_pixel_value << final_bit_index;
+			bool new_pixel_value = (sprite[row] & (1 << final_bit_index)) >> final_bit_index;
+
+			// this does not work
+			Display[final_byte_index] |= (new_pixel_value ^ pixel_currently_active) << (final_bit_index);
 
 			if (pixel_currently_active && !new_pixel_value)
 			{
@@ -403,6 +415,7 @@ void chip8::op_drw_vx_vy_n(uint16_t instruction)
 			}
 			
 		}
+		start_byte_index += 8;
 	}
 	
 
