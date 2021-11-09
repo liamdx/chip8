@@ -14,7 +14,8 @@ int main()
     RunLoop([&]()
     {
         emu.Update(0);
-        DrawBoolArrayScaled(emu.GetPixels(), SCREEN_WIDTH, SCREEN_HEIGHT);
+        auto pixels = emu.GetPixels();
+        DrawBoolArrayScaled(pixels, SCREEN_WIDTH, SCREEN_HEIGHT);
     });
 
     return 1;

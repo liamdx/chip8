@@ -13,7 +13,7 @@ std::vector<bool> chip8::GetPixels()
 {
 	std::vector<bool> pixels;
 
-	for (int i = 0; i < (SCREEN_WIDTH * SCREEN_HEIGHT) / 8; i++)
+	for (int i = 0; i < 256; i++)
 	{
 		uint8_t current_row = Display[i];
 		for (uint8_t bit = 8; bit > 0; bit--)
@@ -23,8 +23,6 @@ std::vector<bool> chip8::GetPixels()
 			bool current_pixel_val = (current_row & (1 << (bit- 1))) >> (bit - 1);
 			pixels.emplace_back(current_pixel_val);
 		}
-
-		pixels.emplace_back(Display[i]);
 	}
 
 	return pixels;
@@ -386,14 +384,15 @@ void chip8::op_drw_vx_vy_n(uint16_t instruction)
 	// get the index of the bit in said byte indicating the pixel
 
 	uint16_t start_byte_index = (x_coord / 8) + (y_coord * 8);
-	uint8_t start_bit_index = (x_coord % 8);
+	uint8_t start_bit_index = 7 - (x_coord % 8);
 
 	for (uint8_t row = 0; row < sprite.size(); row++)
 	{	
+		uint8_t current_row = sprite[row];
 		for (uint8_t bit = 8; bit > 0; bit--)
 		{
 			uint16_t final_byte_index = start_byte_index;
-			uint8_t final_bit_index = start_bit_index + bit;
+			uint8_t final_bit_index = start_bit_index - bit;
 			// if the current pixel is outwith the current display byte
 			if (final_bit_index < 0)
 			{
@@ -404,10 +403,14 @@ void chip8::op_drw_vx_vy_n(uint16_t instruction)
 			// If you want the k - th bit of n, then do
 			// (n & (1 << k)) >> k
 			bool pixel_currently_active = (Display[final_byte_index] & (1 << final_bit_index)) >> final_bit_index;
-			bool new_pixel_value = (sprite[row] & (1 << final_bit_index)) >> final_bit_index;
+			bool new_pixel_value = (current_row & (1 << bit -1)) >> bit -1 ;
+
+			uint8_t current_display_byte = Display[final_byte_index];
 
 			// this does not work
-			Display[final_byte_index] |= (new_pixel_value ^ pixel_currently_active) << (final_bit_index);
+			current_display_byte |= (new_pixel_value ^ pixel_currently_active) << (final_bit_index);
+
+			Display[final_byte_index] = current_display_byte;
 
 			if (pixel_currently_active && !new_pixel_value)
 			{
