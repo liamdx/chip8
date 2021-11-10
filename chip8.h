@@ -32,17 +32,15 @@ protected:
     void Initialize();
     void FillFont();
 
-    union
-    {
+    union {
         char Memory[MEMORY_CAPACITY];
-        struct
-        {
+        struct {
             uint8_t V[16], Font[16 * 5], DelayTimer, SoundTimer, StackPointer, InternalDisplay[(SCREEN_WIDTH * SCREEN_HEIGHT) / 8];
             uint16_t Stack[16], I, PC, Keyboard;
             uint8_t _padding[SYSTEM_MEMORY_PADDING], Rom[ROM_SIZE];
         };
     };
-
+    
     uint8_t Display[SCREEN_WIDTH * SCREEN_HEIGHT];
 
 private:
@@ -52,6 +50,8 @@ private:
     void op_jp_addr(uint16_t addr);
     // 00E0
     void op_cls();
+    // 5XY0
+    void op_se_vx_vy(uint16_t instruction);
     // 6XKK
     void op_ld_vx(uint16_t instruction);
     // ANNN
@@ -60,8 +60,26 @@ private:
     void op_jp_v0(uint16_t instruction);
     // 7XKK
     void op_add(uint16_t instruction);
+    // CXKK
+    void op_rnd_vx(uint16_t instruction);
     // DXYN
     void op_drw_vx_vy_n(uint16_t instruction);
+    // EX9E
+    void op_skp_vx(uint16_t instruction);
+    // EX9E
+    void op_sknp_vx(uint16_t instruction);
+    // FX07
+    void op_ld_vx_dt(uint16_t instruction);
+    // FX0A
+    void op_ld_vx_k(uint16_t instruction);
+    // FX15
+    void op_ld_dt_vx(uint16_t instruction);
+    // FX18
+    void op_ld_st_vx(uint16_t instruction);
+    // FX1E
+    void op_add_i_vx(uint16_t instruction);
+    // FX29
+    void op_ld_f_vx(uint16_t instruction);
     // 3XKK
     void op_skip_vx_nn(uint16_t instruction);
     // 4XKK

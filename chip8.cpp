@@ -318,6 +318,20 @@ void chip8::op_cls()
 	}
 }
 
+void chip8::op_se_vx_vy(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+	uint8_t second_byte = (instruction & 0xFF);
+
+	uint8_t x = first_byte & 0x0F;
+	uint8_t y = second_byte & 0xF0;
+
+	if (V[x] == V[y])
+	{
+		PC += 2;
+	}
+}
+
 void chip8::op_ld_vx(uint16_t instruction)
 {
 	uint8_t lower_byte = (instruction & 0xFF);
@@ -346,6 +360,17 @@ void chip8::op_add(uint16_t instruction)
 	auto x = (upper_byte & 15);
 
 	V[x] += lower_byte;
+}
+
+void chip8::op_rnd_vx(uint16_t instruction)
+{
+	uint8_t lower_byte = (instruction & 0xFF);
+	uint8_t upper_byte = (instruction >> 8);
+	auto x = (upper_byte & 15);
+
+	uint8_t rnd = std::rand();
+	V[x] = rnd & lower_byte;
+
 }
 
 void chip8::op_drw_vx_vy_n(uint16_t instruction)
@@ -399,6 +424,72 @@ void chip8::op_drw_vx_vy_n(uint16_t instruction)
 			}
 		}
 	}	
+}
+
+void chip8::op_skp_vx(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+
+	uint8_t x = first_byte & 15;
+
+	if ((V[x] & Keyboard) == V[x])
+	{
+		PC += 2;
+	}
+}
+
+void chip8::op_sknp_vx(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+
+	uint8_t x = first_byte & 15;
+
+	if ((V[x] & Keyboard) != V[x])
+	{
+		PC += 2;
+	}
+}
+
+void chip8::op_ld_vx_dt(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+
+	uint8_t x = first_byte & 15;
+	V[x] = DelayTimer;
+}
+
+void chip8::op_ld_vx_k(uint16_t instruction)
+{
+	std::cerr << "op FX0A unimplemented!" << std::endl;
+}
+
+void chip8::op_ld_dt_vx(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+
+	uint8_t x = first_byte & 15;
+	DelayTimer = V[x];
+}
+
+void chip8::op_ld_st_vx(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+
+	uint8_t x = first_byte & 15;
+	SoundTimer = V[x];
+}
+
+void chip8::op_add_i_vx(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+
+	uint8_t x = first_byte & 15;
+	I += V[x];
+}
+
+void chip8::op_ld_f_vx(uint16_t instruction)
+{
+
 }
 
 void chip8::op_skip_vx_nn(uint16_t instruction)
