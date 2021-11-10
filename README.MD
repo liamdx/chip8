@@ -8,3 +8,5 @@ Build the project using CMake
 - mkdir build 
 - cd build
 - cmake ..
+
+![Current State](state.png)
