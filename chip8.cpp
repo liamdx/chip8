@@ -97,6 +97,12 @@ void chip8::HandleOpcode(uint16_t opcode)
 			}
 			
 			break;
+		case 0x3:
+			op_skip_vx_nn(opcode);
+			break;
+		case 0x4:
+			op_skip_vx_not_nn(opcode);
+			break;
 		case 0x6:
 			op_ld_vx(opcode);
 			break;
@@ -327,6 +333,12 @@ void chip8::op_ld_i(uint16_t instruction)
 	I = nnn;
 }
 
+void chip8::op_jp_v0(uint16_t instruction)
+{
+	uint16_t nnn = instruction & 0xFFF;
+	PC = nnn + V[0x0];
+}
+
 void chip8::op_add(uint16_t instruction)
 {
 	uint8_t lower_byte = (instruction & 0xFF);
@@ -387,6 +399,188 @@ void chip8::op_drw_vx_vy_n(uint16_t instruction)
 			}
 		}
 	}	
+}
+
+void chip8::op_skip_vx_nn(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+	uint8_t second_byte = (instruction & 0xFF);
+
+	uint8_t x = first_byte & 15;
+	if (V[x] == second_byte)
+	{
+		PC += 2;
+	}
+}
+
+void chip8::op_skip_vx_not_nn(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+	uint8_t second_byte = (instruction & 0xFF);
+
+	uint8_t x = first_byte & 15;
+	if (V[x] != second_byte)
+	{
+		PC += 2;
+	}
+}
+
+void chip8::op_store_vy_vx(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+	uint8_t second_byte = (instruction & 0xFF);
+
+	uint8_t x = first_byte & 15;
+	uint8_t y = second_byte & 15;
+
+	V[x] = V[y];
+}
+
+void chip8::op_or_vx_vy(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+	uint8_t second_byte = (instruction & 0xFF);
+
+	uint8_t x = first_byte & 15;
+	uint8_t y = second_byte & 15;
+
+	V[x] |= V[y];
+}
+
+void chip8::op_and_vx_vy(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+	uint8_t second_byte = (instruction & 0xFF);
+
+	uint8_t x = first_byte & 15;
+	uint8_t y = second_byte & 15;
+
+	V[x]&= V[y];
+}
+
+void chip8::op_xor_vx_vy(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+	uint8_t second_byte = (instruction & 0xFF);
+
+	uint8_t x = first_byte & 15;
+	uint8_t y = second_byte & 15;
+
+	V[x] ^= V[y];
+}
+
+void chip8::op_add_vx_vy(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+	uint8_t second_byte = (instruction & 0xFF);
+
+	uint8_t x = first_byte & 15;
+	uint8_t y = second_byte & 15;
+
+	V[x] += V[y];
+}
+
+void chip8::op_sub_vx_vy(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+	uint8_t second_byte = (instruction & 0xFF);
+
+	uint8_t x = first_byte & 15;
+	uint8_t y = second_byte & 15;
+
+	V[x] -= V[y];
+}
+
+void chip8::op_shr_vx_vy(uint16_t instruction)
+{
+	// least significant bit
+	// x &= -x;
+	uint8_t first_byte = (instruction >> 8);
+	uint8_t x = first_byte & 15;
+
+	uint8_t x_lsb = V[x] & -V[x];
+	
+	V[0xF] = 0;
+
+	if (x_lsb == 1)
+	{
+		V[0xF] = 1;
+	}
+
+	V[x] = V[x] / 2;
+}
+
+void chip8::op_subn_vx_vy(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+	uint8_t second_byte = (instruction & 0xFF);
+
+	uint8_t x = first_byte & 15;
+	uint8_t y = second_byte & 15;
+
+	if (V[y] > V[x])
+	{
+		V[0xF] = 1;
+	}
+	else
+	{
+		V[0xF] = 0;
+	}
+
+	V[x] = V[y] - V[x];
+}
+
+void chip8::op_shl_vx_vy(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+	uint8_t x = first_byte & 15;
+
+	bool msb_true = (V[x] & 0x80) == 0x80;
+	
+	V[0xF] = 0;
+	if (msb_true)
+	{
+		V[0xF] = 1;
+	}
+
+}
+
+void chip8::op_sne_vx_vy(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+	uint8_t second_byte = (instruction & 0xFF);
+
+	uint8_t x = first_byte & 15;
+	uint8_t y = second_byte & 15;
+
+	if (V[x] != V[y])
+	{
+		PC += 2;
+	}
+}
+
+void chip8::op_ld_i_vx(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+
+	uint8_t x = first_byte & 15;
+
+	for (int i = 0; i < x; i++)
+	{
+		Memory[I + i] = V[i];
+	}
+}
+
+void chip8::op_ld_vx_i(uint16_t instruction)
+{
+	uint8_t first_byte = (instruction >> 8);
+
+	uint8_t x = first_byte & 15;
+
+	for (int i = 0; i < x; i++)
+	{
+		V[i] = Memory[I + i];
+	}
 }
 
 void chip8::op_unimplemented(uint16_t instruction)

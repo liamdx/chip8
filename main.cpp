@@ -8,7 +8,7 @@ int main()
     std::cout << "Hello Chip8" << std::endl;
     InitSDL(SCREEN_WIDTH , SCREEN_HEIGHT);
     chip8 emu;
-    std::vector<uint8_t> rom = emu.LoadRomStream("res/roms/ibm_test.ch8");
+    std::vector<uint8_t> rom = emu.LoadRomStream("res/roms/test_opcode.ch8");
     emu.LoadRom(rom);
 
     RunLoop([&]()

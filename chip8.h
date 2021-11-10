@@ -56,11 +56,44 @@ private:
     void op_ld_vx(uint16_t instruction);
     // ANNN
     void op_ld_i(uint16_t instruction);
+    // BNNN
+    void op_jp_v0(uint16_t instruction);
     // 7XKK
     void op_add(uint16_t instruction);
     // DXYN
     void op_drw_vx_vy_n(uint16_t instruction);
+    // 3XKK
+    void op_skip_vx_nn(uint16_t instruction);
+    // 4XKK
+    void op_skip_vx_not_nn(uint16_t instruction);
+    // 8XY0
+    void op_store_vy_vx(uint16_t instruction);
+    // 8XY1
+    void op_or_vx_vy(uint16_t instruction);
+    // 8XY2
+    void op_and_vx_vy(uint16_t instruction);
+    // 8XY3
+    void op_xor_vx_vy(uint16_t instruction);
+    // 8XY4
+    void op_add_vx_vy(uint16_t instruction);
+    // 8XY5
+    void op_sub_vx_vy(uint16_t instruction);
+    // 8XY6
+    void op_shr_vx_vy(uint16_t instruction);
+    // 8XY7
+    void op_subn_vx_vy(uint16_t instruction);
+    // 8XYE
+    void op_shl_vx_vy(uint16_t instruction);
+    // 9XY0
+    void op_sne_vx_vy(uint16_t instruction);
+
+    //FX55
+    void op_ld_i_vx(uint16_t instruction);
+    //FX65
+    void op_ld_vx_i(uint16_t instruction);
 
     void op_unimplemented(uint16_t instruction);
+
+
 
 };
