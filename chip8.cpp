@@ -325,18 +325,6 @@ void chip8::op_ret()
 {
 	PC = Stack[0];
 	StackPointer--;
-	// shift stack to the left
-	for (int i = 0; i < 16; i++)
-	{
-		if (i == 15)
-		{
-			Stack[i] = 0x0000;
-		}
-		else
-		{
-			Stack[i] = Stack[i + 1];
-		}
-	}
 }
 
 // I SUSPECT YOU ARE THE PROBLEM
@@ -355,7 +343,7 @@ void chip8::op_call_addr(uint16_t addr)
 	{
 		if (i == 1)
 		{
-			Stack[0] = FetchOpcode() - 2;
+			Stack[0] = nnn;
 		}
 		else
 		{
