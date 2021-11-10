@@ -83,13 +83,15 @@ void chip8::HandleOpcode(uint16_t opcode)
 
  	switch (n1)
 	{
-		case 0x1:
-			op_jp_addr(opcode);
-			break;
+		
 		case 0x0:
 			if (opcode == 0x00E0)
 			{
 				op_cls();
+			}
+			else if (opcode == 0x00EE)
+			{
+				op_ret();
 			}
 			else
 			{
@@ -97,11 +99,22 @@ void chip8::HandleOpcode(uint16_t opcode)
 			}
 			
 			break;
+		case 0x1:
+			op_jp_addr(opcode);
+			break;
+		case 0x2:
+			op_call_addr(opcode);
 		case 0x3:
 			op_skip_vx_nn(opcode);
 			break;
 		case 0x4:
 			op_skip_vx_not_nn(opcode);
+			break;
+		case 0x5:
+			if (n4 == 0)
+			{
+				op_se_vx_vy(opcode);
+			}
 			break;
 		case 0x6:
 			op_ld_vx(opcode);
@@ -109,8 +122,14 @@ void chip8::HandleOpcode(uint16_t opcode)
 		case 0xA:
 			op_ld_i(opcode);
 			break;
+		case 0xB:
+			op_jp_v0(opcode);
+			break;
 		case 0x7:
 			op_add(opcode);
+			break;
+		case 0x9:
+			op_sne_vx_vy(opcode);
 			break;
 		case 0xD:
 			op_drw_vx_vy_n(opcode);
@@ -302,10 +321,47 @@ void chip8::op_sys_addr(uint16_t addr)
 	PC = nnn;
 }
 
+void chip8::op_ret()
+{
+	PC = Stack[0];
+	StackPointer--;
+	// shift stack to the left
+	for (int i = 0; i < 16; i++)
+	{
+		if (i == 15)
+		{
+			Stack[i] = 0x0000;
+		}
+		else
+		{
+			Stack[i] = Stack[i + 1];
+		}
+	}
+}
+
 // I SUSPECT YOU ARE THE PROBLEM
 void chip8::op_jp_addr(uint16_t addr)
 {
 	uint16_t nnn = addr & 0xFFF;
+	PC = nnn;
+}
+
+void chip8::op_call_addr(uint16_t addr)
+{
+	uint16_t nnn = addr & 0xFFF;
+	StackPointer++;
+	// shift stack to the right
+	for (int i = 16; i > 0; i--)
+	{
+		if (i == 1)
+		{
+			Stack[0] = FetchOpcode() - 2;
+		}
+		else
+		{
+			Stack[i - 1] = Stack[i - 2];
+		}
+	}
 	PC = nnn;
 }
 
@@ -489,7 +545,15 @@ void chip8::op_add_i_vx(uint16_t instruction)
 
 void chip8::op_ld_f_vx(uint16_t instruction)
 {
+	uint8_t first_byte = (instruction >> 8);
 
+	uint8_t x = first_byte & 15;
+	I = FONT_START + (V[x] * 5);
+}
+
+void chip8::op_ld_b_vx(uint16_t instruction)
+{
+	std::cerr << "op FX33 unimplemented!" << std::endl;
 }
 
 void chip8::op_skip_vx_nn(uint16_t instruction)

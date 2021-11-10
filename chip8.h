@@ -13,7 +13,7 @@ constexpr uint16_t MEMORY_START = 0x000;
 constexpr uint16_t MEMORY_END = 0xFFF;
 constexpr uint16_t PROGRAM_START = 0x200;
 constexpr uint16_t PROGRAM_START_ETI_660 = 0x600;
-
+constexpr uint16_t FONT_START = 0x080;
 class chip8
 {
 public:
@@ -46,8 +46,12 @@ protected:
 private:
     // 0NNN
     void op_sys_addr(uint16_t addr);
+    // 0EEE
+    void op_ret();
     // 1NNN
     void op_jp_addr(uint16_t addr);
+    // 2NNN
+    void op_call_addr(uint16_t addr);
     // 00E0
     void op_cls();
     // 5XY0
@@ -80,6 +84,8 @@ private:
     void op_add_i_vx(uint16_t instruction);
     // FX29
     void op_ld_f_vx(uint16_t instruction);
+    // FX33
+    void op_ld_b_vx(uint16_t instruction);
     // 3XKK
     void op_skip_vx_nn(uint16_t instruction);
     // 4XKK
