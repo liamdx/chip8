@@ -101,11 +101,11 @@ void DrawBoolArrayScaled(std::vector<bool> pixels, uint16_t width, uint16_t heig
 
     int numPixelsDrawn = 0;
 
-    for (uint16_t w = 0; w < width; w++)
+    for (uint16_t h = 0; h < height; h++)
     {
-        for (uint16_t h = 0; h < height; h++)
+        for (uint16_t w = 0; w < width; w++)
         {
-            uint16_t index = ((w + 1) * (h + 1)) - 1;
+            uint16_t index = w + (h * width);
             if (pixels[index])
             {
                 current_colour.r = current_colour.g = current_colour.b = (Uint8)255;
@@ -121,16 +121,6 @@ void DrawBoolArrayScaled(std::vector<bool> pixels, uint16_t width, uint16_t heig
             {
                 for (uint16_t rh = 0; rh < pixels_per_axis; rh++)
                 {
-                    // 64x32 real res, 16 scale factor, 4 pixels per axis
-                    // (0,0)  = x 0->3  y 0->3
-                    // (1, 0) = x 4->7  y 0->3
-                    // (2, 0) = x 8->11 y 0->3
-                    // (2, 1) = x 8->11 y 4->7
-                    // xstart = (pixels_per_axis * w)
-                    // xend = xstart + rw
-                    // ystart = pixels_per_axis * h
-                    // yend = ystart + rh
-
                     SDL_SetRenderDrawColor(m_Renderer, current_colour.r, current_colour.g, current_colour.b, 255);
                     SDL_RenderDrawPoint(m_Renderer, (pixels_per_axis * w) + rw, (pixels_per_axis * h) + rh);
                     numPixelsDrawn++;

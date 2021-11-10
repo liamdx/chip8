@@ -27,10 +27,7 @@ public:
 protected:
     
     uint16_t FetchOpcode();
-    void HandleOpcode(uint16_t opcode);
-    
-    // called 60 times per second
-    
+    void HandleOpcode(uint16_t opcode);    
 
     void Initialize();
     void FillFont();
@@ -40,11 +37,13 @@ protected:
         char Memory[MEMORY_CAPACITY];
         struct
         {
-            uint8_t V[16], Font[16 * 5], DelayTimer, SoundTimer, StackPointer, Display[(SCREEN_WIDTH * SCREEN_HEIGHT) / 8];
+            uint8_t V[16], Font[16 * 5], DelayTimer, SoundTimer, StackPointer, InternalDisplay[(SCREEN_WIDTH * SCREEN_HEIGHT) / 8];
             uint16_t Stack[16], I, PC, Keyboard;
             uint8_t _padding[SYSTEM_MEMORY_PADDING], Rom[ROM_SIZE];
         };
     };
+
+    uint8_t Display[SCREEN_WIDTH * SCREEN_HEIGHT];
 
 private:
     // 0NNN
@@ -62,11 +61,6 @@ private:
     // DXYN
     void op_drw_vx_vy_n(uint16_t instruction);
 
-    void op_unimplemented();
-
-    // need to think abouty this a bit more, how do we properly xor when we need to manipulate individual bits?
-    // might make sense to move over to binary array for sake of ease
-    uint16_t get_display_index(char x, char y);
-
+    void op_unimplemented(uint16_t instruction);
 
 };

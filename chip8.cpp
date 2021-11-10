@@ -13,15 +13,15 @@ std::vector<bool> chip8::GetPixels()
 {
 	std::vector<bool> pixels;
 
-	for (int i = 0; i < 256; i++)
+	for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i++)
 	{
-		uint8_t current_row = Display[i];
-		for (uint8_t bit = 8; bit > 0; bit--)
+		if (Display[i] > 0)
 		{
-			// If you want the k - th bit of n, then do
-			// (n & (1 << k)) >> k
-			bool current_pixel_val = (current_row & (1 << (bit- 1))) >> (bit - 1);
-			pixels.emplace_back(current_pixel_val);
+			pixels.emplace_back(true);
+		}
+		else
+		{
+			pixels.emplace_back(false);
 		}
 	}
 
@@ -110,7 +110,7 @@ void chip8::HandleOpcode(uint16_t opcode)
 			op_drw_vx_vy_n(opcode);
 			break;
 		default: 
-			op_unimplemented();
+			op_unimplemented(opcode);
 			break;
 	}
 }
@@ -305,7 +305,7 @@ void chip8::op_jp_addr(uint16_t addr)
 
 void chip8::op_cls()
 {
-	int limit = (SCREEN_HEIGHT * SCREEN_WIDTH / 8);
+	int limit = (SCREEN_HEIGHT * SCREEN_WIDTH);
 	for (int i = 0; i < limit; i++)
 	{
 		Display[i] = 0x00;
@@ -366,91 +366,30 @@ void chip8::op_drw_vx_vy_n(uint16_t instruction)
 		sprite.emplace_back(Memory[current_location]);
 	}
 
-	// If you want the k - th bit of n, then do
-	// (n & (1 << k)) >> k
-
-	// find the index of the byte containing the current coordinate
-	// 8 pixels per byte
-	// 64 / 8 = 8 possible bytes a pixel can be in
-	// e.g. (21, 0)
-	// byte of x coordinate = (x / 8) + (8 * y) = 2;
-	// bit of x coordinate = x % 8 = 5;
-	// 
-	// e.g. (21, 1)
-	// byte of x coordinate = (x * (y+1) / 8 = 5;
-	// bit of x coordinate = x % 8 = 5;
-	// 
-	// 
-	// get the index of the bit in said byte indicating the pixel
-
-	uint16_t start_byte_index = (((x_coord / 8) + (y_coord * 8) - 1));
-	uint8_t start_bit_index = 7 - (x_coord % 8);
-
 	for (uint8_t row = 0; row < sprite.size(); row++)
 	{	
 		uint8_t current_row = sprite[row];
 		for (uint8_t bit = 8; bit > 0; bit--)
 		{
-			uint16_t final_byte_index = start_byte_index;
-			uint8_t final_bit_index = start_bit_index - bit;
-			// if the current pixel is outwith the current display byte
-			if (final_bit_index < 0)
-			{
-				final_bit_index += 8;
-				final_byte_index += 1;
-			}
+			int final_x = x_coord + (7 - (bit - 1));
+			int final_y = y_coord + row;
 
-			// If you want the k - th bit of n, then do
-			// (n & (1 << k)) >> k
-			bool pixel_currently_active = (Display[final_byte_index] & (1 << final_bit_index)) >> final_bit_index;
+			int final_byte_index = final_x + (SCREEN_WIDTH * final_y);
+
+			bool pixel_currently_active = Display[final_byte_index] > 0;
 			bool new_pixel_value = (current_row & (1 << bit -1)) >> bit -1 ;
 
-			uint8_t current_display_byte = Display[final_byte_index];
-
-			// this does not work
-			current_display_byte |= (new_pixel_value ^ pixel_currently_active) << (final_bit_index);
-
-			Display[final_byte_index] = current_display_byte;
+			Display[final_byte_index] ^= new_pixel_value;
 
 			if (pixel_currently_active && !new_pixel_value)
 			{
 				V[0xF] = 0x01;
 			}
-			
 		}
-		start_byte_index += 8;
-	}
-	
-
-	
+	}	
 }
 
-void chip8::op_unimplemented()
+void chip8::op_unimplemented(uint16_t instruction)
 {
-	std::cout << "opcode unimplemented" << std::endl;
-}
-
-uint16_t chip8::get_display_index(char x, char y)
-{
-
-	// (0, 0) = 0	(63, 0) = 63
-
-	// total num bools = screenw * screenh = 64 * 32 = 2048	
-	// last index 2047
-	// (0, 31) = 2047 - 64	= ((x + 1) * (y + 1)) - 1;
-	// screen_width * y = 64 * 31 = 1984 + 31 = 2015
-	// (63, 31)
-
-	if (x >= SCREEN_WIDTH)
-	{
-		std::cerr << "X bigger than screen width" << std::endl;
-	}
-
-	if (y >= SCREEN_HEIGHT)
-	{
-		std::cerr << "Y bigger than screen height" << std::endl;
-	}
-
-
-	return ((x + 1) * (y + 1)) - 1;
+	std::cout << "opcode unimplemented : " << std::hex << instruction << std::endl;
 }
