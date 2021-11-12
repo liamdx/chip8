@@ -82,7 +82,6 @@ void chip8::HandleOpcode(uint16_t opcode)
 
  	switch (n1)
 	{
-		
 		case 0x00:
 			if (opcode == 0x00E0)
 			{
@@ -146,7 +145,7 @@ void chip8::HandleOpcode(uint16_t opcode)
 					op_add_vx_vy(opcode);
 					break;
 				case 0x05:
-					op_subn_vx_vy(opcode);
+					op_sub_vx_vy(opcode);
 					break;
 				case 0x06:
 					op_shr_vx_vy(opcode);
@@ -213,9 +212,14 @@ void chip8::HandleOpcode(uint16_t opcode)
 	}
 }
 
-void chip8::Update(uint16_t newState)
+void chip8::Update(bool keys[16])
 {
-	Keyboard = newState;
+	for (int i = 0; i < 16; i++)
+	{
+		Keys[i] = keys[i];
+	}
+	DelayTimer--;
+	SoundTimer--;
 
 	// disgusting hack, at 60hz this is approximately 700 ips
 	for (int i = 0; i < 12; i++)
@@ -549,7 +553,7 @@ void chip8::op_skp_vx(uint16_t instruction)
 
 	uint8_t x = first_byte & 15;
 
-	if ((V[x] & Keyboard) == V[x])
+	if (Keys[V[x]] == true)
 	{
 		PC += 2;
 	}
@@ -561,9 +565,13 @@ void chip8::op_sknp_vx(uint16_t instruction)
 
 	uint8_t x = first_byte & 15;
 
-	if ((V[x] & Keyboard) != V[x])
+	if (Keys[V[x]] != true)
 	{
 		PC += 2;
+	}
+	else
+	{
+		bool b = false;
 	}
 }
 
@@ -646,9 +654,9 @@ void chip8::op_store_vy_vx(uint16_t instruction)
 	uint8_t first_byte = (instruction >> 8);
 	uint8_t second_byte = (instruction & 0xFF);
 
-	uint8_t x = first_byte & 15;
-	uint8_t y = second_byte & 15;
-
+	uint8_t x = (first_byte & 15);
+	uint8_t y = second_byte & 0xF0;
+	y = y >> 4;
 	V[x] = V[y];
 }
 
@@ -658,7 +666,8 @@ void chip8::op_or_vx_vy(uint16_t instruction)
 	uint8_t second_byte = (instruction & 0xFF);
 
 	uint8_t x = first_byte & 15;
-	uint8_t y = second_byte & 15;
+	uint8_t y = second_byte & 0xF0;
+	y = y >> 4;
 
 	V[x] |= V[y];
 }
@@ -669,7 +678,8 @@ void chip8::op_and_vx_vy(uint16_t instruction)
 	uint8_t second_byte = (instruction & 0xFF);
 
 	uint8_t x = first_byte & 15;
-	uint8_t y = second_byte & 15;
+	uint8_t y = second_byte & 0xF0;
+	y = y >> 4;
 
 	V[x]&= V[y];
 }
@@ -680,7 +690,8 @@ void chip8::op_xor_vx_vy(uint16_t instruction)
 	uint8_t second_byte = (instruction & 0xFF);
 
 	uint8_t x = first_byte & 15;
-	uint8_t y = second_byte & 15;
+	uint8_t y = second_byte & 0xF0;
+	y = y >> 4;
 
 	V[x] ^= V[y];
 }
@@ -691,7 +702,8 @@ void chip8::op_add_vx_vy(uint16_t instruction)
 	uint8_t second_byte = (instruction & 0xFF);
 
 	uint8_t x = first_byte & 15;
-	uint8_t y = second_byte & 15;
+	uint8_t y = second_byte & 0xF0;
+	y = y >> 4;
 
 	V[x] += V[y];
 }
@@ -702,28 +714,30 @@ void chip8::op_sub_vx_vy(uint16_t instruction)
 	uint8_t second_byte = (instruction & 0xFF);
 
 	uint8_t x = first_byte & 15;
-	uint8_t y = second_byte & 15;
+	uint8_t y = second_byte & 0xF0;
+	y = y >> 4;
 
+	if (V[x] > V[y])
+	{
+		V[0xF] = 1;
+		
+	}
+	else
+	{
+		V[0xF] = 0;
+	}
+	
 	V[x] -= V[y];
 }
 
 void chip8::op_shr_vx_vy(uint16_t instruction)
 {
-	// least significant bit
-	// x &= -x;
+	// (n & ( 1 << k )) >> k
 	uint8_t first_byte = (instruction >> 8);
 	uint8_t x = first_byte & 15;
-
-	uint8_t x_lsb = V[x] & -V[x];
 	
-	V[0xF] = 0;
-
-	if (x_lsb == 1)
-	{
-		V[0xF] = 1;
-	}
-
-	V[x] = V[x] / 2;
+	V[0xF] = V[x] & 0x1;
+	V[x] >>= 1;
 }
 
 void chip8::op_subn_vx_vy(uint16_t instruction)
@@ -732,7 +746,8 @@ void chip8::op_subn_vx_vy(uint16_t instruction)
 	uint8_t second_byte = (instruction & 0xFF);
 
 	uint8_t x = first_byte & 15;
-	uint8_t y = second_byte & 15;
+	uint8_t y = second_byte & 0xF0;
+	y = y >> 4;
 
 	if (V[y] > V[x])
 	{
@@ -751,13 +766,8 @@ void chip8::op_shl_vx_vy(uint16_t instruction)
 	uint8_t first_byte = (instruction >> 8);
 	uint8_t x = first_byte & 15;
 
-	bool msb_true = (V[x] & 0x80) == 0x80;
-	
-	V[0xF] = 0;
-	if (msb_true)
-	{
-		V[0xF] = 1;
-	}
+	V[0xF] = V[x] >> 7;
+	V[x] <<= 1;
 
 }
 

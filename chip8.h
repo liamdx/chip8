@@ -21,7 +21,7 @@ public:
     chip8();
     std::vector<bool> GetPixels();
     void LoadRom(std::vector<uint8_t> rom);
-    void Update(uint16_t newState);
+    void Update(bool keys[16]);
 
     std::vector<uint8_t> LoadRomStream(std::string path);
 protected:
@@ -42,11 +42,11 @@ protected:
     };
     
     uint8_t Display[SCREEN_WIDTH * SCREEN_HEIGHT];
-
+    bool Keys[16]{ false };
 private:
     // 0NNN
     void op_sys_addr(uint16_t addr);
-    // 0EEE
+    // 00EE
     void op_ret();
     // 1NNN
     void op_jp_addr(uint16_t addr);
@@ -117,7 +117,6 @@ private:
     void op_ld_vx_i(uint16_t instruction);
 
     void op_unimplemented(uint16_t instruction);
-
 
 
 };

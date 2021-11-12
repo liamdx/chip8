@@ -10,11 +10,12 @@ int main()
     chip8 emu;
     // std::vector<uint8_t> rom = emu.LoadRomStream("res/roms/ibm_test.ch8");
     std::vector<uint8_t> rom = emu.LoadRomStream("res/roms/test_opcode.ch8");
+   // std::vector<uint8_t> rom = emu.LoadRomStream("res/roms/spc.ch8");
     emu.LoadRom(rom);
 
     RunLoop([&]()
     {
-        emu.Update(GetKeyboardState());
+        emu.Update(m_ActiveKeys);
         auto pixels = emu.GetPixels();
         DrawBoolArrayScaled(pixels, SCREEN_WIDTH, SCREEN_HEIGHT);
     });
