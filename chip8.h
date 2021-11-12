@@ -70,7 +70,7 @@ private:
     void op_drw_vx_vy_n(uint16_t instruction);
     // EX9E
     void op_skp_vx(uint16_t instruction);
-    // EX9E
+    // EXA1
     void op_sknp_vx(uint16_t instruction);
     // FX07
     void op_ld_vx_dt(uint16_t instruction);

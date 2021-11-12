@@ -12,19 +12,60 @@ uint32_t SDL_FLAGS;
 SDL_Window* m_Window;
 SDL_Renderer* m_Renderer;
 SDL_Rect* m_Viewport;
+std::vector<SDL_Keycode> m_ActiveKeycodes;
+
+bool m_ActiveKeys[16] = { false };
+
 bool m_ShouldRun = true;
 
 uint16_t real_screen_x = 0;
 uint16_t real_screen_y = 0;
 
+int GetKeycodeArrayIndex(SDL_Keycode keycode)
+{
+    for (int i = 0; i < 16; i++)
+    {
+        if (m_ActiveKeycodes[i] == keycode)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void HandleKeydown(SDL_Event& event)
+{
+    int index = GetKeycodeArrayIndex(event.key.keysym.sym);
+
+    if (index > -1)
+    {
+        m_ActiveKeys[index] = true;
+    }
+}
+
+void HandleKeyup(SDL_Event& event)
+{
+    int index = GetKeycodeArrayIndex(event.key.keysym.sym);
+
+    if (index > -1)
+    {
+        m_ActiveKeys[index] = false;
+    }
+}
 
 void HandleSDLEvent(SDL_Event& event)
 {
     switch (event.type)
     {
-    case SDL_QUIT:
-        m_ShouldRun = false;
-        break;
+        case SDL_QUIT:
+            m_ShouldRun = false;
+            break;
+        case SDL_KEYDOWN:
+            HandleKeydown(event);
+            break;
+        case SDL_KEYUP:
+            HandleKeyup(event);
+            break;
     }
 }
 
@@ -44,10 +85,31 @@ void CreateSDLRenderer()
     m_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_ACCELERATED);
 }
 
+void SetupInput()
+{
+    m_ActiveKeycodes.emplace_back(49);
+    m_ActiveKeycodes.emplace_back(50);
+    m_ActiveKeycodes.emplace_back(51);
+    m_ActiveKeycodes.emplace_back(52);
+    m_ActiveKeycodes.emplace_back(113);
+    m_ActiveKeycodes.emplace_back(119);
+    m_ActiveKeycodes.emplace_back(101);
+    m_ActiveKeycodes.emplace_back(114);
+    m_ActiveKeycodes.emplace_back(97);
+    m_ActiveKeycodes.emplace_back(115);
+    m_ActiveKeycodes.emplace_back(100);
+    m_ActiveKeycodes.emplace_back(102);
+    m_ActiveKeycodes.emplace_back(122);
+    m_ActiveKeycodes.emplace_back(120);
+    m_ActiveKeycodes.emplace_back(99);
+    m_ActiveKeycodes.emplace_back(118);
+}
+
 void InitSDL(uint16_t w, uint16_t h)
 {
     CreateSDLWindow(w,h);
     CreateSDLRenderer();
+    SetupInput();
 }
 
 void RunLoop(std::function<void()> callback)
@@ -61,6 +123,18 @@ void RunLoop(std::function<void()> callback)
         }
         callback();
     }
+}
+
+uint16_t GetKeyboardState()
+{
+    uint16_t keyboard_state = 0x0000;
+
+    for (int i = 0; i < 16; i++)
+    {
+        keyboard_state |= m_ActiveKeys[i] << (15 - i);
+    }
+
+    return keyboard_state;
 }
 
 void DrawBoolArray(std::vector<bool> pixels, uint16_t width, uint16_t height)

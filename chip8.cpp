@@ -70,7 +70,6 @@ void chip8::HandleOpcode(uint16_t opcode)
 	// mask the first nibble to get a rough idea
 	// switch on the first nibble
 
-	
 	uint8_t first_byte = (opcode >> 8);
 	uint8_t second_byte = (opcode & 0xFF);
 
@@ -84,7 +83,7 @@ void chip8::HandleOpcode(uint16_t opcode)
  	switch (n1)
 	{
 		
-		case 0x0:
+		case 0x00:
 			if (opcode == 0x00E0)
 			{
 				op_cls();
@@ -92,47 +91,121 @@ void chip8::HandleOpcode(uint16_t opcode)
 			else if (opcode == 0x00EE)
 			{
 				op_ret();
-			}
+			}			
 			else
 			{
 				op_sys_addr(opcode);
 			}
-			
 			break;
-		case 0x1:
+		case 0x01:
 			op_jp_addr(opcode);
 			break;
-		case 0x2:
+		case 0x02:
 			op_call_addr(opcode);
-		case 0x3:
+		case 0x03:
 			op_skip_vx_nn(opcode);
 			break;
-		case 0x4:
+		case 0x04:
 			op_skip_vx_not_nn(opcode);
 			break;
-		case 0x5:
+		case 0x05:
 			if (n4 == 0)
 			{
 				op_se_vx_vy(opcode);
 			}
 			break;
-		case 0x6:
+		case 0x06:
 			op_ld_vx(opcode);
 			break;
-		case 0xA:
+		case 0x0A:
 			op_ld_i(opcode);
 			break;
-		case 0xB:
+		case 0x0B:
 			op_jp_v0(opcode);
 			break;
-		case 0x7:
+		case 0x07:
 			op_add(opcode);
 			break;
-		case 0x9:
+		case 0x08:
+
+			switch (n4)
+			{
+				case 0x00:
+					op_store_vy_vx(opcode);
+					break;
+				case 0x01:
+					op_or_vx_vy(opcode);
+					break;
+				case 0x02:
+					op_and_vx_vy(opcode);
+					break;
+				case 0x03:
+					op_xor_vx_vy(opcode);
+					break;
+				case 0x04:
+					op_add_vx_vy(opcode);
+					break;
+				case 0x05:
+					op_subn_vx_vy(opcode);
+					break;
+				case 0x06:
+					op_shr_vx_vy(opcode);
+				case 0x07:
+					op_subn_vx_vy(opcode);
+					break;
+				case 0x0E:
+					op_shl_vx_vy(opcode);
+					break;
+				default:
+					op_unimplemented(opcode);
+					break;
+			}
+
+			break;
+		case 0x09:
 			op_sne_vx_vy(opcode);
 			break;
-		case 0xD:
+		case 0x0C:
+			op_rnd_vx(opcode);
+			break;
+		case 0x0D:
 			op_drw_vx_vy_n(opcode);
+			break;
+		case 0x0E:
+			if (second_byte == 0x9E)
+			{
+				op_skp_vx(opcode);
+			}
+			else
+			{
+				op_sknp_vx(opcode);
+			}
+			break;
+		case 0x0F:
+			switch (second_byte)
+			{
+				case 0x07:
+					op_ld_vx_dt(opcode);
+					break;
+				case 0x0A:
+					op_ld_vx_k(opcode);
+					break;
+				case 0x15:
+					op_ld_dt_vx(opcode);
+					break;
+				case 0x18:
+					op_ld_st_vx(opcode);
+					break;
+				case 0x1E:
+					op_add_i_vx(opcode);
+					break;
+				case 0x29:
+					op_ld_f_vx(opcode);
+					break;
+				case 0x33:
+					op_ld_b_vx(opcode);
+					break;
+			}
 			break;
 		default: 
 			op_unimplemented(opcode);
@@ -193,7 +266,7 @@ void chip8::Initialize()
 	SoundTimer = 0x00;
 	StackPointer = 0x00;
 
-	for (auto i = 0; i < (SCREEN_HEIGHT * SCREEN_WIDTH) / 8; i++)
+	for (auto i = 0; i < (SCREEN_HEIGHT * SCREEN_WIDTH); i++)
 	{
 		Display[i] = 0X00;
 	}
@@ -343,7 +416,7 @@ void chip8::op_call_addr(uint16_t addr)
 	{
 		if (i == 1)
 		{
-			Stack[0] = nnn;
+			Stack[0] = PC;
 		}
 		else
 		{
@@ -358,7 +431,7 @@ void chip8::op_cls()
 	int limit = (SCREEN_HEIGHT * SCREEN_WIDTH);
 	for (int i = 0; i < limit; i++)
 	{
-		Display[i] = 0x00;
+		Display[i] = 0;
 	}
 }
 
@@ -369,7 +442,7 @@ void chip8::op_se_vx_vy(uint16_t instruction)
 
 	uint8_t x = first_byte & 0x0F;
 	uint8_t y = second_byte & 0xF0;
-
+	y = y >> 4;
 	if (V[x] == V[y])
 	{
 		PC += 2;
@@ -694,7 +767,8 @@ void chip8::op_sne_vx_vy(uint16_t instruction)
 	uint8_t second_byte = (instruction & 0xFF);
 
 	uint8_t x = first_byte & 15;
-	uint8_t y = second_byte & 15;
+	uint8_t y = second_byte & 0xF0;
+	y = y >> 4;
 
 	if (V[x] != V[y])
 	{
