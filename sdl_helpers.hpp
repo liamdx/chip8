@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include <vector>
 #include <stdlib.h>
+#include <cmath>
 #undef main
 
 #define SDL_WHITE 255, 255, 255, 255
@@ -72,8 +73,8 @@ void HandleSDLEvent(SDL_Event& event)
 void CreateSDLWindow(uint16_t width, uint16_t height)
 {
     SDL_FLAGS |= SDL_WINDOW_ALLOW_HIGHDPI;
-    real_screen_x = width * sqrt(SCALE_FACTOR);
-    real_screen_y = height * sqrt(SCALE_FACTOR);
+    real_screen_x = width * std::sqrt(SCALE_FACTOR);
+    real_screen_y = height * std::sqrt(SCALE_FACTOR);
     m_Window = SDL_CreateWindow("Chip8 Emu", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, real_screen_x, real_screen_y, SDL_FLAGS);
     m_Viewport = new SDL_Rect();
     m_Viewport->w = real_screen_x;
@@ -171,7 +172,7 @@ void DrawBoolArrayScaled(std::vector<bool> pixels, uint16_t width, uint16_t heig
     SDL_RenderSetViewport(m_Renderer, m_Viewport);
     SDL_RenderClear(m_Renderer);
     SDL_Color current_colour = SDL_Color();
-    uint16_t pixels_per_axis = sqrt(SCALE_FACTOR);
+    uint16_t pixels_per_axis = std::sqrt(SCALE_FACTOR);
 
     int numPixelsDrawn = 0;
 
@@ -190,7 +191,7 @@ void DrawBoolArrayScaled(std::vector<bool> pixels, uint16_t width, uint16_t heig
             }
 
             // e.g. scale factor is 16
-            // additional pixels in each axis is sqrt(SCALE_FACTOR)
+            // additional pixels in each axis is std::sqrt(SCALE_FACTOR)
             for (uint16_t rw = 0; rw < pixels_per_axis; rw++)
             {
                 for (uint16_t rh = 0; rh < pixels_per_axis; rh++)

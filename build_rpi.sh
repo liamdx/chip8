@@ -1,0 +1,1 @@
+g++ -o chip8 main.cpp chip8.h chip8.cpp sdl_helpers.hpp -I ./SDL/include -lSDL
