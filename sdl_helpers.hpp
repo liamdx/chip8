@@ -74,7 +74,7 @@ void HandleSDLEvent(SDL_Event& event)
 
 void CreateSDLWindow(uint16_t width, uint16_t height)
 {
-    SDL_FLAGS |= SDL_WINDOW_ALLOW_HIGHDPI;
+    // SDL_FLAGS |= SDL_WINDOW_ALLOW_HIGHDPI;
     real_screen_x = width * std::sqrt(SCALE_FACTOR);
     real_screen_y = height * std::sqrt(SCALE_FACTOR);
     m_Window = SDL_CreateWindow("Chip8 Emu", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, real_screen_x, real_screen_y, SDL_FLAGS);
