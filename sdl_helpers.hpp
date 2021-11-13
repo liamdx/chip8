@@ -9,7 +9,7 @@
 #define SDL_WHITE 255, 255, 255, 255
 #define SDL_BLACK 0,0,0,0
 
-constexpr uint16_t SCALE_FACTOR = 121;
+constexpr uint16_t SCALE_FACTOR = 16;
 
 uint32_t SDL_FLAGS;
 SDL_Window* m_Window;
