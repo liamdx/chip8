@@ -78,6 +78,10 @@ void CreateSDLWindow(uint16_t width, uint16_t height)
     real_screen_x = width * std::sqrt(SCALE_FACTOR);
     real_screen_y = height * std::sqrt(SCALE_FACTOR);
     m_Window = SDL_CreateWindow("Chip8 Emu", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, real_screen_x, real_screen_y, SDL_FLAGS);
+    if (m_Window == NULL)
+    {
+        std::cout << "Failed to Create SDL Window: " << SDL_GetError() << std::endl;
+    }
     m_Viewport = new SDL_Rect();
     m_Viewport->w = real_screen_x;
     m_Viewport->h = real_screen_y;
@@ -85,7 +89,11 @@ void CreateSDLWindow(uint16_t width, uint16_t height)
 
 void CreateSDLRenderer()
 {
-    m_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_ACCELERATED);
+    m_Renderer = SDL_CreateRenderer(m_Window, -1, SDL_RENDERER_SOFTWARE);
+    if (m_Renderer == NULL)
+    {
+        std::cout << "Failed to Create SDL Renderer: " << SDL_GetError() << std::endl;
+    }
 }
 
 void SetupInput()
