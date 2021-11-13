@@ -204,6 +204,12 @@ void chip8::HandleOpcode(uint16_t opcode)
 				case 0x33:
 					op_ld_b_vx(opcode);
 					break;
+				case 0x55:
+					op_ld_i_vx(opcode);
+					break;
+				case 0x65:
+					op_ld_vx_i(opcode);
+					break;
 			}
 			break;
 		default: 
@@ -622,7 +628,17 @@ void chip8::op_ld_f_vx(uint16_t instruction)
 
 void chip8::op_ld_b_vx(uint16_t instruction)
 {
-	std::cerr << "op FX33 unimplemented!" << std::endl;
+	uint8_t first_byte = (instruction >> 8);
+
+	uint8_t x = first_byte & 15;
+
+	uint8_t i = V[x] / 100;
+	uint8_t i1 = (V[x] / 10) % 10;
+	uint8_t i2 = V[x] % 10;
+		 
+	Memory[I] = i;
+	Memory[I + 1] = i1;
+	Memory[I + 2] = i2;
 }
 
 void chip8::op_skip_vx_nn(uint16_t instruction)
@@ -792,7 +808,7 @@ void chip8::op_ld_i_vx(uint16_t instruction)
 
 	uint8_t x = first_byte & 15;
 
-	for (int i = 0; i < x; i++)
+	for (int i = 0; i <= x; i++)
 	{
 		Memory[I + i] = V[i];
 	}
@@ -804,9 +820,9 @@ void chip8::op_ld_vx_i(uint16_t instruction)
 
 	uint8_t x = first_byte & 15;
 
-	for (int i = 0; i < x; i++)
+	for (int i = 0; i <= x; i++)
 	{
-		V[i] = Memory[I + i];
+		V[x] = Memory[I + i];
 	}
 }
 
