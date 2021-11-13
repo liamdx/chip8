@@ -9,7 +9,10 @@ IF (WIN32)
 
     set(SDL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SDL")
 ELSE()
-  # set stuff for other systems
+    # set stuff for other systems
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+    set(CMAKE_INSTALL_RPATH "/usr/local/lib")
 ENDIF()
 
 
@@ -25,6 +28,9 @@ IF (WIN32)
         target_include_directories(${PROJECT_NAME} PUBLIC "${SDL_DIR}/include")
     endif()
 ELSE()
-  # set stuff for other systems
+    include(FindPkgConfig)
+    pkg_search_module(SDL2 REQUIRED sdl2)
+    include_directories(${SDL2_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES})
 ENDIF()
 
