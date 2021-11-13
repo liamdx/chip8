@@ -2,6 +2,8 @@
 #include <vector>
 #include <stdlib.h>
 #include <cmath>
+#include <functional>
+
 #undef main
 
 #define SDL_WHITE 255, 255, 255, 255
