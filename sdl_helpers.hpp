@@ -110,6 +110,10 @@ void SetupInput()
 
 void InitSDL(uint16_t w, uint16_t h)
 {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
+        std::cout << "Failed to init SDL: " << SDL_GetError() << std::endl;
+    }
     CreateSDLWindow(w,h);
     CreateSDLRenderer();
     SetupInput();
