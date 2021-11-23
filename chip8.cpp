@@ -782,8 +782,16 @@ void chip8::op_shl_vx_vy(uint16_t instruction)
 	uint8_t first_byte = (instruction >> 8);
 	uint8_t x = first_byte & 15;
 
-	V[0xF] = V[x] >> 7;
-	V[x] <<= 1;
+	if ((V[x] & 10000000) == 1)
+	{
+		V[0xF] = 1;
+	}
+	else
+	{
+		V[0xF] = 0;
+	}
+
+	V[x] = V[x] << 1;
 
 }
 
