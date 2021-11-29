@@ -118,5 +118,7 @@ private:
 
     void op_unimplemented(uint16_t instruction);
 
+    bool p_WaitFlag;
+    uint8_t p_WaitRegister;
 
 };
